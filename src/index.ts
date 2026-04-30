@@ -122,12 +122,21 @@ const campaignSettingsSchema = z.array(z.object({
   value: z.any().describe("Setting value — type depends on the setting (string, boolean, object, or array)"),
 }).strict()).optional().describe("Campaign settings as {name, value} pairs. The OpenAPI spec lists this as string[] but the live API rejects strings with 'settings.0.name field is required'.");
 
+const campaignTypeDescription = `Campaign type. Maps to the Givebutter dashboard creation options as follows:
+
+- 'collect' → 'Fundraising Page' in the dashboard. Standalone donation page with goal, donation tiers, and updates feed. Most common type.
+- 'fundraise' → 'Peer-to-Peer Fundraiser' in the dashboard. Like 'collect' but supports team and member sub-pages. Can be linked to an event via event_id.
+- 'event' → 'Event' in the dashboard. Ticketed events with registration. Pairs with the campaign-ticket tools.
+- 'general' → NOT shown in the dashboard creation chooser. Represents the account's primary donation page (singleton — only one per account, accessible at givebutter.com/[account-slug]). Attempting to create a second one returns 422: 'You can only have one general donations campaign.'
+
+If creating campaigns programmatically and unsure, 'collect' is the right default for most use cases.`;
+
 server.tool(
   "create_campaign",
   "Create a new campaign. Note: cover images cannot be set via the public API — they must be uploaded through the Givebutter dashboard after creation.",
   {
     title: z.string().max(150).describe("Campaign title"),
-    type: z.enum(["general", "collect", "fundraise", "event"]).describe("Campaign type. `general` for general donations; `collect` for campaigns with a clear goal (most common); `fundraise` for peer-to-peer team fundraisers; `event` for ticketed events."),
+    type: z.enum(["general", "collect", "fundraise", "event"]).describe(campaignTypeDescription),
     subtitle: z.string().max(255).optional().describe("Campaign subtitle"),
     campaign_description: z.string().optional().describe("The campaign body HTML. This becomes the public donor-facing content on givebutter.com — write the actual content, not metadata or reasoning notes."),
     website: z.string().url().max(255).optional().describe("Campaign website URL"),
@@ -152,7 +161,7 @@ server.tool(
   {
     campaign_id: z.number().describe("The campaign ID"),
     title: z.string().max(150).optional().describe("Campaign title"),
-    type: z.enum(["general", "collect", "fundraise", "event"]).optional().describe("Campaign type. `general`, `collect`, `fundraise`, or `event`."),
+    type: z.enum(["general", "collect", "fundraise", "event"]).optional().describe(campaignTypeDescription),
     subtitle: z.string().max(255).optional().describe("Campaign subtitle"),
     campaign_description: z.string().optional().describe("The campaign body HTML. This becomes the public donor-facing content on givebutter.com — write the actual content, not metadata or reasoning notes."),
     website: z.string().url().max(255).optional().describe("Campaign website URL"),
