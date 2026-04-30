@@ -130,7 +130,10 @@ server.tool(
     beneficiary_id: z.number().int().optional().describe("Beneficiary account ID"),
     timezone: z.string().max(255).optional().describe("Campaign timezone (e.g., America/New_York)"),
     currency: z.literal("USD").optional().describe("Currency code (USD only)"),
-    settings: z.array(z.string()).optional().describe("Campaign settings flags"),
+    settings: z.array(z.object({
+      name: z.string().describe("Setting key (e.g., 'theme_color', 'default_frequency', 'custom_donation_amounts')"),
+      value: z.any().describe("Setting value — type depends on the setting (string, boolean, object, or array)"),
+    }).strict()).optional().describe("Campaign settings as {name, value} pairs. The OpenAPI spec lists this as string[] but the live API rejects strings with 'settings.0.name field is required'."),
   },
   async ({ title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings }) => {
     const body = buildBody({ title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings });
@@ -155,7 +158,10 @@ server.tool(
     beneficiary_id: z.number().int().optional().describe("Beneficiary account ID"),
     timezone: z.string().max(255).optional().describe("Campaign timezone"),
     currency: z.literal("USD").optional().describe("Currency code (USD only)"),
-    settings: z.array(z.string()).optional().describe("Campaign settings flags"),
+    settings: z.array(z.object({
+      name: z.string().describe("Setting key (e.g., 'theme_color', 'default_frequency', 'custom_donation_amounts')"),
+      value: z.any().describe("Setting value — type depends on the setting (string, boolean, object, or array)"),
+    }).strict()).optional().describe("Campaign settings as {name, value} pairs. The OpenAPI spec lists this as string[] but the live API rejects strings with 'settings.0.name field is required'."),
   },
   async ({ campaign_id, title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings }) => {
     const body = buildBody({ title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings });
