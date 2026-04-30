@@ -120,16 +120,19 @@ server.tool(
   {
     title: z.string().max(150).describe("Campaign title"),
     type: z.enum(["general", "collect", "fundraise", "event"]).describe("Campaign type. Source: docs.givebutter.com/api-reference/campaigns/create-a-campaign (verified 2026-04-30)"),
-    goal: z.number().int().min(0).optional().describe("Fundraising goal in cents"),
+    subtitle: z.string().max(255).optional().describe("Campaign subtitle"),
     description: z.string().optional().describe("Campaign description"),
+    website: z.string().url().max(255).optional().describe("Campaign website URL"),
+    slug: z.string().max(255).optional().describe("Custom URL slug"),
+    goal: z.number().int().min(0).optional().describe("Fundraising goal in cents"),
     end_at: z.string().optional().describe("End date in ISO 8601 format"),
+    beneficiary_id: z.number().int().optional().describe("Beneficiary account ID"),
+    timezone: z.string().max(255).optional().describe("Campaign timezone (e.g., America/New_York)"),
+    currency: z.literal("USD").optional().describe("Currency code (USD only)"),
+    settings: z.array(z.string()).optional().describe("Campaign settings flags"),
   },
-  async ({ title, type, goal, description, end_at }) => {
-    const body: Record<string, unknown> = { title, type };
-    if (goal !== undefined) body.goal = goal;
-    if (description !== undefined) body.description = description;
-    if (end_at !== undefined) body.end_at = end_at;
-
+  async ({ title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings }) => {
+    const body = buildBody({ title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings });
     const result = await apiRequest("/campaigns", "POST", body);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
@@ -137,16 +140,24 @@ server.tool(
 
 server.tool(
   "update_campaign",
-  "Update an existing campaign",
+  "Update an existing campaign. Note: this is a PUT (replace) — fields not supplied may be reset.",
   {
     campaign_id: z.number().describe("The campaign ID"),
-    title: z.string().optional().describe("Campaign title"),
-    goal: z.number().optional().describe("Fundraising goal in cents"),
+    title: z.string().max(150).optional().describe("Campaign title"),
+    type: z.enum(["general", "collect", "fundraise", "event"]).optional().describe("Campaign type"),
+    subtitle: z.string().max(255).optional().describe("Campaign subtitle"),
     description: z.string().optional().describe("Campaign description"),
+    website: z.string().url().max(255).optional().describe("Campaign website URL"),
+    slug: z.string().max(255).optional().describe("Custom URL slug"),
+    goal: z.number().int().min(0).optional().describe("Fundraising goal in cents"),
     end_at: z.string().optional().describe("End date in ISO 8601 format"),
+    beneficiary_id: z.number().int().optional().describe("Beneficiary account ID"),
+    timezone: z.string().max(255).optional().describe("Campaign timezone"),
+    currency: z.literal("USD").optional().describe("Currency code (USD only)"),
+    settings: z.array(z.string()).optional().describe("Campaign settings flags"),
   },
-  async ({ campaign_id, title, goal, description, end_at }) => {
-    const body = buildBody({ title, goal, description, end_at });
+  async ({ campaign_id, title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings }) => {
+    const body = buildBody({ title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings });
     const result = await apiRequest(`/campaigns/${campaign_id}`, "PUT", body);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
