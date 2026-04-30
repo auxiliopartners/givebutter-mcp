@@ -403,6 +403,75 @@ server.tool(
   }
 );
 
+// Source: docs.givebutter.com/api-reference/transactions/create-a-transaction (verified 2026-04-30)
+const paymentMethodEnum = z.enum([
+  "ach", "card", "cash", "check", "digital_wallet", "donor_advised_fund",
+  "paypal", "venmo", "cashapp", "terminal", "stock", "in-kind",
+  "property", "other", "none",
+]);
+
+const dedicationTypeEnum = z.enum(["in_memory_of", "in_honor_of"]);
+
+const dedicationObjectSchema = z.object({
+  type: dedicationTypeEnum,
+  name: z.string().max(255),
+  recipient_name: z.string().max(255).nullable().optional(),
+  recipient_email: z.string().email().nullable().optional(),
+});
+
+server.tool(
+  "create_transaction",
+  "Create a manual/offline transaction",
+  {
+    method: paymentMethodEnum.describe("Payment method"),
+    transacted_at: z.string().describe("Transaction date in ISO 8601 format"),
+    amount: z.string().describe("Transaction amount as a decimal string (e.g. '25.00')"),
+    campaign_code: z.string().optional().describe("Campaign code to associate the transaction with"),
+    campaign_title: z.string().max(255).optional().describe("Campaign title (creates a campaign if code not found)"),
+    campaign_team_id: z.number().int().optional().describe("Campaign team ID"),
+    team_member_id: z.number().int().optional().describe("Team member ID"),
+    contact_id: z.number().int().optional().describe("Contact ID"),
+    contact_external_id: z.string().max(255).optional().describe("External contact ID"),
+    fund_code: z.string().max(255).optional().describe("Fund code"),
+    mark_deposited: z.boolean().optional().describe("Mark transaction as deposited"),
+    timezone: z.string().optional().describe("Timezone for the transaction"),
+    acknowledged_at: z.string().optional().describe("Acknowledgement date in ISO 8601 format"),
+    external_label: z.string().max(255).optional().describe("External label"),
+    external_id: z.string().max(255).optional().describe("External ID"),
+    contact_contact_since: z.string().optional().describe("Contact-since date in ISO 8601 format"),
+    fee_covered: z.string().optional().describe("Fee covered amount as decimal string"),
+    platform_fee: z.string().optional().describe("Platform fee as decimal string"),
+    processing_fee: z.string().optional().describe("Processing fee as decimal string"),
+    check_number: z.string().max(255).optional().describe("Check number"),
+    check_deposited_at: z.string().optional().describe("Check deposited date in ISO 8601 format"),
+    company: z.string().max(255).optional().describe("Donor company"),
+    internal_note: z.string().max(255).optional().describe("Internal note"),
+    first_name: z.string().max(255).optional().describe("Donor first name"),
+    last_name: z.string().max(255).optional().describe("Donor last name"),
+    email: z.string().max(255).optional().describe("Donor email"),
+    phone: z.string().optional().describe("Donor phone"),
+    address_1: z.string().max(255).optional().describe("Address line 1"),
+    address_2: z.string().max(255).optional().describe("Address line 2"),
+    city: z.string().max(255).optional().describe("City"),
+    state: z.string().max(255).optional().describe("State"),
+    zipcode: z.string().max(255).optional().describe("Zip / postal code"),
+    country: z.string().optional().describe("Country"),
+    dedication_type: dedicationTypeEnum.optional().describe("Dedication type"),
+    dedication_name: z.string().max(255).optional().describe("Dedication name"),
+    dedication_recipient_name: z.string().max(255).optional().describe("Dedication recipient name"),
+    dedication_recipient_email: z.string().optional().describe("Dedication recipient email"),
+    giving_space_message: z.string().max(65535).optional().describe("Giving space message"),
+    appeal_code: z.string().max(255).optional().describe("Appeal code"),
+    appeal_name: z.string().max(255).optional().describe("Appeal name"),
+    appeal_status: z.string().optional().describe("Appeal status"),
+  },
+  async (fields) => {
+    const body = buildBody(fields);
+    const result = await apiRequest("/transactions", "POST", body);
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
+);
+
 server.tool(
   "update_transaction",
   "Update an existing transaction",
@@ -415,9 +484,12 @@ server.tool(
     campaign_member_id: z.string().optional().describe("Campaign member ID"),
     fund_id: z.string().optional().describe("Fund ID"),
     campaign_id: z.string().optional().describe("Campaign ID"),
-    method: z.string().optional().describe("Payment method"),
-    transacted_at: z.string().optional().describe("Transaction date"),
+    method: paymentMethodEnum.optional().describe("Payment method"),
+    transacted_at: z.string().optional().describe("Transaction date in ISO 8601 format"),
     appeal_id: z.string().optional().describe("Appeal ID"),
+    offline_payment_received: z.string().optional().describe("Offline payment received"),
+    custom_fields: z.array(z.string()).optional().describe("Custom field values"),
+    dedication: dedicationObjectSchema.optional().describe("Dedication object — all four fields required if supplied"),
   },
   async ({ transaction_id, ...fields }) => {
     const body = buildBody(fields);
