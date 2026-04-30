@@ -266,7 +266,7 @@ server.tool(
 
 server.tool(
   "delete_contact",
-  "Archive a contact (soft delete)",
+  "Archive a contact (soft delete — recoverable via restore_contact). A 404 typically means the contact is not in this API key's scope, not a wrapper bug.",
   {
     contact_id: z.number().describe("The contact ID to archive"),
   },
@@ -361,7 +361,7 @@ server.tool(
 
 server.tool(
   "delete_contact_activity",
-  "Delete a contact activity",
+  "Delete a contact activity. A 404 typically means scope/permission, not a wrapper bug. May return 422 with field-level errors for validation failures.",
   {
     contact_id: z.number().describe("The contact ID"),
     activity_id: z.number().describe("The activity ID to delete"),
@@ -570,7 +570,7 @@ server.tool(
 
 server.tool(
   "delete_campaign_member",
-  "Remove a member from a campaign",
+  "Remove a member from a campaign. A 404 typically means the campaign or member is not in this API key's scope, not a wrapper bug.",
   {
     campaign_id: z.number().describe("The campaign ID"),
     member_id: z.number().describe("The member ID to remove"),
@@ -611,7 +611,7 @@ server.tool(
 
 server.tool(
   "delete_campaign_team",
-  "Delete a team from a campaign",
+  "Delete a team from a campaign. A 404 typically means the campaign or team is not in this API key's scope, not a wrapper bug.",
   {
     campaign_id: z.number().describe("The campaign ID"),
     team_id: z.number().describe("The team ID to delete"),
@@ -744,7 +744,7 @@ server.tool(
 
 server.tool(
   "delete_discount_code",
-  "Delete a discount code (cannot delete codes already used - deactivate instead)",
+  "Delete a discount code. Constraints: (1) the API returns 422 'Cannot delete a discount code that has been used. Please update its status to inactive.' if the code has been used — call update_discount_code with active:false instead; (2) a 404 typically means scope/permission, not a wrapper bug.",
   {
     campaign_id: z.number().describe("The campaign ID"),
     discount_code_id: z.number().describe("The discount code ID to delete"),
@@ -816,7 +816,7 @@ server.tool(
 
 server.tool(
   "delete_household",
-  "Delete a household",
+  "Delete a household. A 404 typically means the household is not in this API key's scope, not a wrapper bug.",
   {
     household_id: z.number().describe("The household ID to delete"),
   },
@@ -869,7 +869,7 @@ server.tool(
 
 server.tool(
   "remove_household_contact",
-  "Remove a contact from a household",
+  "Remove a contact from a household. Returns the updated household with its remaining contacts. A 404 typically means scope/permission, not a wrapper bug.",
   {
     household_id: z.number().describe("The household ID"),
     contact_id: z.number().describe("The contact ID to remove"),
@@ -982,7 +982,7 @@ server.tool(
 
 server.tool(
   "delete_webhook",
-  "Delete a webhook",
+  "Delete a webhook. A 404 typically means the webhook is not in this API key's scope, not a wrapper bug.",
   {
     webhook_id: z.string().describe("The webhook ID to delete"),
   },
@@ -1193,7 +1193,7 @@ server.tool(
 
 server.tool(
   "delete_fund",
-  "Delete a fund/designation",
+  "Delete a fund/designation. A 404 typically means the fund is not in this API key's scope, not a wrapper bug.",
   {
     fund_id: z.string().describe("The fund ID to delete"),
   },
