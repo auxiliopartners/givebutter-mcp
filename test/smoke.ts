@@ -34,7 +34,7 @@ async function api(path: string, init: RequestInit = {}): Promise<any> {
   });
   const text = await res.text();
   if (!res.ok) throw new Error(`${init.method ?? "GET"} ${path} → ${res.status} ${res.statusText} :: ${text}`);
-  return res.status === 204 ? null : JSON.parse(text);
+  return text.length === 0 ? null : JSON.parse(text);
 }
 
 function ok(label: string) {

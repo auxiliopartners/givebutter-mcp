@@ -62,12 +62,13 @@ async function apiRequest(
     throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
   }
 
-  // Handle 204 No Content
-  if (response.status === 204) {
+  // Some endpoints (notably DELETE /campaigns/{id}) return 200 with an
+  // empty body rather than 204, so trust the body length, not the status.
+  const text = await response.text();
+  if (text.length === 0) {
     return { success: true };
   }
-
-  return response.json();
+  return JSON.parse(text);
 }
 
 // Helper to build a body from optional fields
