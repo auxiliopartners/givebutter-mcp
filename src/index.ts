@@ -94,11 +94,12 @@ server.tool(
   "list_campaigns",
   "List all campaigns associated with your Givebutter account",
   {
-    page: z.number().optional().describe("Page number for pagination"),
+    page: z.number().optional().describe("Page number (1-indexed)"),
+    per_page: z.number().int().min(1).max(100).optional().describe("Items per page (default 20, max 100)"),
     scope: z.enum(["owned", "beneficiary", "chapter"]).optional().describe("Filter by campaign scope"),
   },
-  async ({ page, scope }) => {
-    const result = await apiRequest("/campaigns", "GET", undefined, { page, scope });
+  async ({ page, per_page, scope }) => {
+    const result = await apiRequest("/campaigns", "GET", undefined, { page, per_page, scope });
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
 );
