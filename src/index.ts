@@ -144,7 +144,7 @@ server.tool(
 
 server.tool(
   "update_campaign",
-  "Update an existing campaign. Note: this is a PUT (replace) — fields not supplied may be reset.",
+  "Update an existing campaign. Partial updates supported — only supply the fields you want to change. (The endpoint is documented as PUT but Givebutter applies it as a partial update; omitted fields are preserved.)",
   {
     campaign_id: z.number().describe("The campaign ID"),
     title: z.string().max(150).optional().describe("Campaign title"),
