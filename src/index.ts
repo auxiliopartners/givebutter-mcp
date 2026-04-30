@@ -115,28 +115,31 @@ server.tool(
   }
 );
 
+// Source: docs.givebutter.com/api-reference/campaigns/create-a-campaign (verified 2026-04-30)
+const campaignSettingsSchema = z.array(z.object({
+  name: z.string().describe("Setting key (e.g., 'theme_color', 'default_frequency', 'custom_donation_amounts')"),
+  value: z.any().describe("Setting value — type depends on the setting (string, boolean, object, or array)"),
+}).strict()).optional().describe("Campaign settings as {name, value} pairs. The OpenAPI spec lists this as string[] but the live API rejects strings with 'settings.0.name field is required'.");
+
 server.tool(
   "create_campaign",
-  "Create a new campaign",
+  "Create a new campaign. Note: cover images cannot be set via the public API — they must be uploaded through the Givebutter dashboard after creation.",
   {
     title: z.string().max(150).describe("Campaign title"),
-    type: z.enum(["general", "collect", "fundraise", "event"]).describe("Campaign type. Source: docs.givebutter.com/api-reference/campaigns/create-a-campaign (verified 2026-04-30)"),
+    type: z.enum(["general", "collect", "fundraise", "event"]).describe("Campaign type. `general` for general donations; `collect` for campaigns with a clear goal (most common); `fundraise` for peer-to-peer team fundraisers; `event` for ticketed events."),
     subtitle: z.string().max(255).optional().describe("Campaign subtitle"),
-    description: z.string().optional().describe("Campaign description"),
+    campaign_description: z.string().optional().describe("The campaign body HTML. This becomes the public donor-facing content on givebutter.com — write the actual content, not metadata or reasoning notes."),
     website: z.string().url().max(255).optional().describe("Campaign website URL"),
-    slug: z.string().max(255).optional().describe("Custom URL slug"),
-    goal: z.number().int().min(0).optional().describe("Fundraising goal in whole dollars (e.g. 1200 for a $1,200 goal — the API does NOT use cents)"),
+    slug: z.string().max(255).optional().describe("Custom URL slug. Note: Givebutter may append the auto-generated campaign code as a suffix if the slug conflicts with an existing campaign (observed empirically; not in the official docs)."),
+    goal: z.number().int().min(0).optional().describe("Fundraising goal in whole dollars (e.g. 1200 for a $1,200 goal — the API does NOT use cents). Set to 0 to clear the goal; Givebutter stores 0 as null."),
     end_at: z.string().optional().describe("End date in ISO 8601 format"),
     beneficiary_id: z.number().int().optional().describe("Beneficiary account ID"),
     timezone: z.string().max(255).optional().describe("Campaign timezone (e.g., America/New_York)"),
-    currency: z.literal("USD").optional().describe("Currency code (USD only)"),
-    settings: z.array(z.object({
-      name: z.string().describe("Setting key (e.g., 'theme_color', 'default_frequency', 'custom_donation_amounts')"),
-      value: z.any().describe("Setting value — type depends on the setting (string, boolean, object, or array)"),
-    }).strict()).optional().describe("Campaign settings as {name, value} pairs. The OpenAPI spec lists this as string[] but the live API rejects strings with 'settings.0.name field is required'."),
+    currency: z.string().optional().describe("Currency code. USD is the only currently-supported value as of 2026-04-30; loosened to a string to avoid breaking if Givebutter expands."),
+    settings: campaignSettingsSchema,
   },
-  async ({ title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings }) => {
-    const body = buildBody({ title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings });
+  async ({ title, type, subtitle, campaign_description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings }) => {
+    const body = buildBody({ title, type, subtitle, description: campaign_description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings });
     const result = await apiRequest("/campaigns", "POST", body);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
@@ -144,27 +147,24 @@ server.tool(
 
 server.tool(
   "update_campaign",
-  "Update an existing campaign. Partial updates supported — only supply the fields you want to change. (The endpoint is documented as PUT but Givebutter applies it as a partial update; omitted fields are preserved.)",
+  "Update an existing campaign. Partial updates supported — only supply the fields you want to change. (The endpoint is documented as PUT but Givebutter applies it as a partial update; omitted fields are preserved.) Note: cover images cannot be set via the public API — they must be uploaded through the Givebutter dashboard.",
   {
     campaign_id: z.number().describe("The campaign ID"),
     title: z.string().max(150).optional().describe("Campaign title"),
-    type: z.enum(["general", "collect", "fundraise", "event"]).optional().describe("Campaign type"),
+    type: z.enum(["general", "collect", "fundraise", "event"]).optional().describe("Campaign type. `general`, `collect`, `fundraise`, or `event`."),
     subtitle: z.string().max(255).optional().describe("Campaign subtitle"),
-    description: z.string().optional().describe("Campaign description"),
+    campaign_description: z.string().optional().describe("The campaign body HTML. This becomes the public donor-facing content on givebutter.com — write the actual content, not metadata or reasoning notes."),
     website: z.string().url().max(255).optional().describe("Campaign website URL"),
-    slug: z.string().max(255).optional().describe("Custom URL slug"),
-    goal: z.number().int().min(0).optional().describe("Fundraising goal in whole dollars (e.g. 1200 for a $1,200 goal — the API does NOT use cents)"),
+    slug: z.string().max(255).optional().describe("Custom URL slug. Note: Givebutter may append the auto-generated campaign code as a suffix if the slug conflicts with an existing campaign (observed empirically; not in the official docs)."),
+    goal: z.number().int().min(0).optional().describe("Fundraising goal in whole dollars (e.g. 1200 for a $1,200 goal — the API does NOT use cents). Set to 0 to clear the goal; Givebutter stores 0 as null."),
     end_at: z.string().optional().describe("End date in ISO 8601 format"),
     beneficiary_id: z.number().int().optional().describe("Beneficiary account ID"),
     timezone: z.string().max(255).optional().describe("Campaign timezone"),
-    currency: z.literal("USD").optional().describe("Currency code (USD only)"),
-    settings: z.array(z.object({
-      name: z.string().describe("Setting key (e.g., 'theme_color', 'default_frequency', 'custom_donation_amounts')"),
-      value: z.any().describe("Setting value — type depends on the setting (string, boolean, object, or array)"),
-    }).strict()).optional().describe("Campaign settings as {name, value} pairs. The OpenAPI spec lists this as string[] but the live API rejects strings with 'settings.0.name field is required'."),
+    currency: z.string().optional().describe("Currency code. USD is the only currently-supported value as of 2026-04-30; loosened to a string to avoid breaking if Givebutter expands."),
+    settings: campaignSettingsSchema,
   },
-  async ({ campaign_id, title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings }) => {
-    const body = buildBody({ title, type, subtitle, description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings });
+  async ({ campaign_id, title, type, subtitle, campaign_description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings }) => {
+    const body = buildBody({ title, type, subtitle, description: campaign_description, website, slug, goal, end_at, beneficiary_id, timezone, currency, settings });
     const result = await apiRequest(`/campaigns/${campaign_id}`, "PUT", body);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
