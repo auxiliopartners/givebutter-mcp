@@ -415,19 +415,49 @@ server.tool(
 
 // ============ TRANSACTIONS ============
 
+// Source: docs.givebutter.com/api-reference/transactions/create-a-transaction (verified 2026-04-30)
+const paymentMethodEnum = z.enum([
+  "ach", "card", "cash", "check", "digital_wallet", "donor_advised_fund",
+  "paypal", "venmo", "cashapp", "terminal", "stock", "in-kind",
+  "property", "other", "none",
+]);
+
+const dedicationTypeEnum = z.enum(["in_memory_of", "in_honor_of"]);
+
+const dedicationObjectSchema = z.object({
+  type: dedicationTypeEnum,
+  name: z.string().max(255),
+  recipient_name: z.string().max(255).nullable().optional(),
+  recipient_email: z.string().email().nullable().optional(),
+});
+
 server.tool(
   "list_transactions",
-  "List all transactions",
+  "List all transactions with optional filters, sort, and pagination.",
   {
-    page: z.number().optional().describe("Page number for pagination"),
-    campaign_id: z.number().optional().describe("Filter by campaign ID"),
-    contact_id: z.number().optional().describe("Filter by contact ID"),
+    page: z.number().optional().describe("Page number (1-indexed)"),
+    per_page: z.number().int().min(1).max(100).optional().describe("Items per page (default 20, max 100)"),
+    campaign_id: z.number().optional().describe("Filter by campaign ID (undocumented but historically supported)"),
+    contact_id: z.number().optional().describe("Filter by contact ID (undocumented but historically supported)"),
+    transactedAfter: z.string().optional().describe("Only transactions transacted at or after this ISO 8601 datetime"),
+    transactedBefore: z.string().optional().describe("Only transactions transacted at or before this ISO 8601 datetime"),
+    createdAfter: z.string().optional().describe("Only transactions created at or after this ISO 8601 datetime"),
+    createdBefore: z.string().optional().describe("Only transactions created at or before this ISO 8601 datetime"),
+    updatedAfter: z.string().optional().describe("Only transactions updated at or after this ISO 8601 datetime"),
+    updatedBefore: z.string().optional().describe("Only transactions updated at or before this ISO 8601 datetime"),
+    checkDepositedAfter: z.string().optional().describe("Only transactions with check_deposited_at at or after this ISO 8601 datetime"),
+    checkDepositedBefore: z.string().optional().describe("Only transactions with check_deposited_at at or before this ISO 8601 datetime"),
+    method: paymentMethodEnum.optional().describe("Filter by payment method"),
+    scope: z.enum(["all", "benefiting", "chapters"]).optional().describe("Transaction scope: all, benefiting, chapters"),
+    sortBy: z.enum(["amount", "transacted_at", "created_at", "contact_name"]).optional().describe("Sort field (ascending)"),
+    sortByDesc: z.enum(["amount", "transacted_at", "created_at", "contact_name"]).optional().describe("Sort field (descending)"),
+    contacts: z.string().optional().describe("Comma-separated list of contact IDs to filter by"),
   },
-  async ({ page, campaign_id, contact_id }) => {
+  async (args) => {
     const result = await apiRequest("/transactions", "GET", undefined, {
-      page,
-      campaign_id: campaign_id?.toString(),
-      contact_id: contact_id?.toString()
+      ...args,
+      campaign_id: args.campaign_id?.toString(),
+      contact_id: args.contact_id?.toString(),
     });
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
@@ -444,22 +474,6 @@ server.tool(
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
 );
-
-// Source: docs.givebutter.com/api-reference/transactions/create-a-transaction (verified 2026-04-30)
-const paymentMethodEnum = z.enum([
-  "ach", "card", "cash", "check", "digital_wallet", "donor_advised_fund",
-  "paypal", "venmo", "cashapp", "terminal", "stock", "in-kind",
-  "property", "other", "none",
-]);
-
-const dedicationTypeEnum = z.enum(["in_memory_of", "in_honor_of"]);
-
-const dedicationObjectSchema = z.object({
-  type: dedicationTypeEnum,
-  name: z.string().max(255),
-  recipient_name: z.string().max(255).nullable().optional(),
-  recipient_email: z.string().email().nullable().optional(),
-});
 
 server.tool(
   "create_transaction",
