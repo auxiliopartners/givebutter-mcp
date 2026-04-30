@@ -4,9 +4,9 @@ A Model Context Protocol (MCP) server that provides integration with the [Givebu
 
 ## Features
 
-- **Campaigns**: List, create, update, and delete fundraising campaigns
-- **Contacts**: Manage donor contacts, tags, and activity history
-- **Transactions**: View and update donation transactions
+- **Campaigns**: List, create, update, and delete fundraising campaigns (types: `general`, `collect`, `fundraise`, `event`)
+- **Contacts**: Manage donor contacts, tags, and activity history (create/update/delete activities)
+- **Transactions**: Create, view, and update donation transactions
 - **Campaign Members**: Manage peer-to-peer fundraising members
 - **Campaign Teams**: View, manage, and delete fundraising teams
 - **Campaign Tickets**: Create and manage event tickets per campaign
@@ -64,7 +64,7 @@ Add the following to your Claude Desktop configuration file:
 claude mcp add givebutter -e GIVEBUTTER_API_KEY=your-api-key -- node /path/to/givebutter-mcp/dist/index.js
 ```
 
-## Available Tools (65)
+## Available Tools (68)
 
 ### Campaigns
 
@@ -93,6 +93,8 @@ claude mcp add givebutter -e GIVEBUTTER_API_KEY=your-api-key -- node /path/to/gi
 |------|-------------|
 | `list_contact_activities` | List all activities for a contact with optional type filter |
 | `get_contact_activity` | Get details of a specific contact activity |
+| `create_contact_activity` | Log a new activity for a contact (note, meeting, call, etc.) |
+| `update_contact_activity` | Update an existing contact activity |
 | `delete_contact_activity` | Delete a contact activity |
 
 ### Contact Tags
@@ -109,7 +111,8 @@ claude mcp add givebutter -e GIVEBUTTER_API_KEY=your-api-key -- node /path/to/gi
 |------|-------------|
 | `list_transactions` | List transactions with optional campaign/contact filter |
 | `get_transaction` | Get details of a specific transaction |
-| `update_transaction` | Update a transaction (notes, check info, fund, team, etc.) |
+| `create_transaction` | Record a manual / offline transaction (check, cash, ACH, etc.) |
+| `update_transaction` | Update a transaction (notes, check info, fund, team, dedication, custom fields) |
 
 ### Campaign Members
 
@@ -234,7 +237,7 @@ Once configured, you can ask Claude questions like:
 - "Show me the top donors this month"
 - "List all our active campaigns"
 - "What's the total raised for campaign ID 12345?"
-- "Create a new campaign called 'Spring Fundraiser' with a goal of $10,000"
+- "Create a 'fundraise' campaign called 'Spring Fundraiser' with a goal of $10,000"
 - "Show me the transaction details for donation #67890"
 - "Add the tag 'major-donor' to contact #123"
 - "Create a webhook for transaction.succeeded events"
