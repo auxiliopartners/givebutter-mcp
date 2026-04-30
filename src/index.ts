@@ -172,7 +172,7 @@ server.tool(
 
 server.tool(
   "delete_campaign",
-  "Delete a campaign",
+  "Delete a campaign. Constraints: (1) the API key must own the campaign — campaigns from sub-accounts, beneficiaries, or chapters return 404 even if visible elsewhere; (2) campaigns that have raised money cannot be deleted (the API returns 409 'This campaign has already raised money, and can not be deleted.'). A 404 typically means scope/permission, not a wrapper bug.",
   {
     campaign_id: z.number().describe("The campaign ID to delete"),
   },
