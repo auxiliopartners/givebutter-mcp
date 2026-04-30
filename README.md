@@ -6,7 +6,7 @@ A Model Context Protocol (MCP) server that provides integration with the [Givebu
 
 - **Campaigns**: List, create, update, and delete fundraising campaigns (types: `general`, `collect`, `fundraise`, `event`)
 - **Contacts**: Manage donor contacts, tags, and activity history (create/update/delete activities)
-- **Transactions**: Create, view, and update donation transactions
+- **Transactions**: Create, view, and update donation transactions; list with date-range / method / scope / sort filters
 - **Campaign Members**: Manage peer-to-peer fundraising members
 - **Campaign Teams**: View, manage, and delete fundraising teams
 - **Campaign Tickets**: Create and manage event tickets per campaign
@@ -19,6 +19,17 @@ A Model Context Protocol (MCP) server that provides integration with the [Givebu
 - **Payouts**: View payout history
 - **Plans**: Manage recurring donation plans
 - **Funds**: Create, update, and delete fund designations
+
+## API limitations
+
+Two workflows that exist in the Givebutter dashboard are **not exposed by the public API**, so this MCP can't drive them — they require dashboard use:
+
+- **Cover image upload**: there is no `/cover`, `/media`, `/uploads`, or `/files` endpoint anywhere in the OpenAPI spec. Cover images must be set in the dashboard after the campaign is created.
+- **Campaign updates / posts**: the dashboard's "Updates" feature (which auto-emails sponsors) has no public API endpoint.
+
+## Breaking change in 1.2.0
+
+`create_campaign` and `update_campaign`: the parameter previously named `description` is now `campaign_description`. The Givebutter API field is still `description` over the wire — only the MCP-facing parameter name changed, to disambiguate from the MCP envelope's `description` and stop LLM consumers from putting metadata into the campaign body. Callers passing `description` will need to rename.
 
 ## Installation
 

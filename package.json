@@ -1,6 +1,6 @@
 {
   "name": "givebutter-mcp",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "MCP server for Givebutter API - enables AI assistants to manage fundraising campaigns, contacts, and transactions",
   "type": "module",
   "main": "dist/index.js",
