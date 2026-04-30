@@ -283,20 +283,18 @@ server.tool(
 
 // ============ CONTACT ACTIVITIES ============
 
+// Source: docs.givebutter.com/api-reference/contact-activities/create-a-contact-activity (verified 2026-04-30)
+const contactActivityTypeEnum = z.enum([
+  "email", "meeting", "note", "phone_call", "sms",
+  "completed_task", "volunteer_activity",
+]);
+
 server.tool(
   "list_contact_activities",
   "List all activities for a contact",
   {
     contact_id: z.number().describe("The contact ID"),
-    type: z.enum([
-      "archived", "campaign.joined", "email", "email.subscribed", "email.unsubscribed",
-      "letter", "meeting", "note", "phone_call", "recurring_plan.canceled",
-      "recurring_plan.created", "recurring_plan.activated", "signup_form.submitted",
-      "sms", "sms.subscribed", "sms.unsubscribed", "subscription_form.submitted",
-      "completed_task", "ticket.issued", "transaction.recieved", "transaction.succeeded",
-      "transaction.acknowledged", "transaction.unacknowledged", "unarchived",
-      "volunteer_activity", "soft_credited"
-    ]).optional().describe("Filter by activity type"),
+    type: contactActivityTypeEnum.optional().describe("Filter by activity type"),
   },
   async ({ contact_id, type }) => {
     const result = await apiRequest(`/contacts/${contact_id}/activities`, "GET", undefined, { type });
@@ -313,6 +311,43 @@ server.tool(
   },
   async ({ contact_id, activity_id }) => {
     const result = await apiRequest(`/contacts/${contact_id}/activities/${activity_id}`);
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
+);
+
+server.tool(
+  "create_contact_activity",
+  "Log a new activity for a contact (note, meeting, call, etc.)",
+  {
+    contact_id: z.number().describe("The contact ID"),
+    type: contactActivityTypeEnum.describe("Activity type"),
+    note: z.string().max(255).optional().describe("Activity note (max 255 chars)"),
+    subject: z.string().max(255).optional().describe("Activity subject (max 255 chars)"),
+    occurred_at: z.string().optional().describe("When the activity occurred, ISO 8601"),
+    timezone: z.string().max(255).optional().describe("Timezone for occurred_at"),
+  },
+  async ({ contact_id, ...fields }) => {
+    const body = buildBody(fields);
+    const result = await apiRequest(`/contacts/${contact_id}/activities`, "POST", body);
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
+);
+
+server.tool(
+  "update_contact_activity",
+  "Update an existing contact activity",
+  {
+    contact_id: z.number().describe("The contact ID"),
+    activity_id: z.number().describe("The activity ID"),
+    type: contactActivityTypeEnum.optional().describe("Activity type"),
+    note: z.string().max(255).optional().describe("Activity note (max 255 chars)"),
+    subject: z.string().max(255).optional().describe("Activity subject (max 255 chars)"),
+    occurred_at: z.string().optional().describe("When the activity occurred, ISO 8601"),
+    timezone: z.string().max(255).optional().describe("Timezone for occurred_at"),
+  },
+  async ({ contact_id, activity_id, ...fields }) => {
+    const body = buildBody(fields);
+    const result = await apiRequest(`/contacts/${contact_id}/activities/${activity_id}`, "PATCH", body);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
 );
