@@ -118,9 +118,9 @@ server.tool(
   "create_campaign",
   "Create a new campaign",
   {
-    title: z.string().describe("Campaign title"),
-    type: z.enum(["standard", "event", "sweepstakes", "p2p"]).describe("Campaign type - affects pricing tier"),
-    goal: z.number().optional().describe("Fundraising goal in cents"),
+    title: z.string().max(150).describe("Campaign title"),
+    type: z.enum(["general", "collect", "fundraise", "event"]).describe("Campaign type. Source: docs.givebutter.com/api-reference/campaigns/create-a-campaign (verified 2026-04-30)"),
+    goal: z.number().int().min(0).optional().describe("Fundraising goal in cents"),
     description: z.string().optional().describe("Campaign description"),
     end_at: z.string().optional().describe("End date in ISO 8601 format"),
   },
@@ -147,7 +147,7 @@ server.tool(
   },
   async ({ campaign_id, title, goal, description, end_at }) => {
     const body = buildBody({ title, goal, description, end_at });
-    const result = await apiRequest(`/campaigns/${campaign_id}`, "PATCH", body);
+    const result = await apiRequest(`/campaigns/${campaign_id}`, "PUT", body);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
 );
