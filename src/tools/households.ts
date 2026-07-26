@@ -16,7 +16,13 @@ export const householdTools = defineTools([
     method: "GET",
     path: "/households",
     paginated: true,
-    input: {},
+    input: {
+      headContactId: z.number().optional().describe("Filter by head contact ID"),
+      contacts: z.string().optional().describe("Filter by contact ID, or comma-separated IDs"),
+      query: z.string().optional().describe("Free-text search across households"),
+      sortBy: z.string().optional().describe("Sort ascending by this field"),
+      sortByDesc: z.string().optional().describe("Sort descending by this field"),
+    },
   },
   {
     name: "get_household",

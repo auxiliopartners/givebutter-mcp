@@ -1,20 +1,8 @@
 import { z } from "zod";
 import { defineTools } from "./types.js";
+import { webhookEvent as webhookEventEnum } from "../types/common.js";
 
 const webhook_id = z.string().describe("The webhook ID");
-
-const webhookEventEnum = z.enum([
-  "campaign.created",
-  "campaign.updated",
-  "ticket.created",
-  "transaction.succeeded",
-  "contact.created",
-  "plan.canceled",
-  "plan.created",
-  "plan.paused",
-  "plan.resumed",
-  "plan.updated",
-]);
 
 export const webhookTools = defineTools([
   {
@@ -56,7 +44,10 @@ export const webhookTools = defineTools([
     input: {
       webhook_id,
       url: z.string().url().describe("The webhook endpoint URL"),
-      events: z.array(webhookEventEnum).describe("Array of event types (required for update)"),
+      events: z
+        .array(webhookEventEnum)
+        .min(1)
+        .describe("Array of event types (required for update)"),
       name: z.string().max(255).optional().describe("Webhook name"),
       enabled: z.boolean().optional().describe("Whether the webhook is enabled"),
     },

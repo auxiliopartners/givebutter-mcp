@@ -10,15 +10,15 @@ export const ticketTools = defineTools([
     method: "GET",
     path: "/tickets",
     paginated: true,
-    input: {
-      campaign_id: z.number().optional().describe("Filter by campaign ID"),
-    },
+    // GET /tickets accepts no filters. A campaign_id used to be sent here and was
+    // silently ignored, so callers got every ticket back believing it was filtered.
+    input: {},
   },
   {
     name: "get_ticket",
     description: "Get details of a specific ticket",
     method: "GET",
     path: "/tickets/:ticket_id",
-    input: { ticket_id: z.number().describe("The ticket ID") },
+    input: { ticket_id: z.string().describe("The ticket ID (uid)") },
   },
 ]);

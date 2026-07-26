@@ -8,9 +8,13 @@ const shared = {
   code: z.string().max(255).describe("The discount code string"),
   type: z.enum(["percentage", "fixed"]).describe("Discount type"),
   active: z.boolean().describe("Whether the code is active"),
-  uses: z.number().min(1).optional().describe("Maximum number of uses"),
+  uses: z.number().min(1).optional().describe("Maximum number of uses (omit for unlimited)"),
   starts_at: z.string().optional().describe("Start date in ISO 8601 format"),
   expires_at: z.string().optional().describe("Expiry date in ISO 8601 format"),
+  items: z
+    .array(z.number())
+    .optional()
+    .describe("Ticket/item IDs the code applies to; omit to apply to all"),
 };
 
 export const discountCodeTools = defineTools([
@@ -37,7 +41,7 @@ export const discountCodeTools = defineTools([
     input: {
       campaign_id,
       ...shared,
-      amount: z.number().min(1).describe("Discount amount"),
+      amount: z.number().min(1).max(100).describe("Discount amount"),
     },
   },
   {
@@ -55,6 +59,7 @@ export const discountCodeTools = defineTools([
       uses: shared.uses,
       starts_at: shared.starts_at,
       expires_at: shared.expires_at,
+      items: shared.items,
     },
   },
   {

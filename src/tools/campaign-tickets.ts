@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { defineTools } from "./types.js";
+import { customFieldEntry } from "../types/common.js";
 
 // Ticket *products* offered by a campaign. Distinct from src/tools/tickets.ts, which is
 // the tickets actually issued to attendees.
@@ -48,6 +49,12 @@ export const campaignTicketTools = defineTools([
         .optional()
         .describe("Whether to hide remaining quantity"),
       scope: z.enum(["registrant", "event"]).optional().describe("Ticket scope"),
+      bundles: z.array(z.unknown()).optional().describe("Bundle definitions for this ticket"),
+      custom_fields: z
+        .array(customFieldEntry)
+        .optional()
+        .describe("Custom fields collected when this ticket is purchased"),
+      pictures: z.array(z.unknown()).optional().describe("Ticket images"),
     },
   },
 ]);

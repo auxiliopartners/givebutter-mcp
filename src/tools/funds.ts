@@ -15,7 +15,7 @@ export const fundTools = defineTools([
     description: "Get details of a specific fund",
     method: "GET",
     path: "/funds/:fund_id",
-    input: { fund_id: z.number().describe("The fund ID") },
+    input: { fund_id: z.string().describe("The fund ID (fid)") },
   },
   {
     name: "create_fund",
