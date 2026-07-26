@@ -5,8 +5,8 @@ A Model Context Protocol (MCP) server that provides integration with the [Givebu
 ## Features
 
 - **Campaigns**: List, create, update, and delete fundraising campaigns
-- **Contacts**: Manage donor contacts, tags, and activity history
-- **Transactions**: View and update donation transactions
+- **Contacts**: Manage donor contacts, tags, and activity history (including logging notes, calls and meetings)
+- **Transactions**: List, record offline gifts, and update donation transactions
 - **Campaign Members**: Manage peer-to-peer fundraising members
 - **Campaign Teams**: View, manage, and delete fundraising teams
 - **Campaign Tickets**: Create and manage event tickets per campaign
@@ -34,7 +34,7 @@ npm run build
 ### Get Your Givebutter API Key
 
 1. Log in to your [Givebutter account](https://givebutter.com)
-2. Go to **Settings** > **Integrations** > **API**
+2. Go to **Settings** > **Developers** > **API Keys**
 3. Generate a new API key or copy your existing one
 
 ### Configure with Claude Desktop
@@ -64,13 +64,13 @@ Add the following to your Claude Desktop configuration file:
 claude mcp add givebutter -e GIVEBUTTER_API_KEY=your-api-key -- node /path/to/givebutter-mcp/dist/index.js
 ```
 
-## Available Tools (65)
+## Available Tools (68)
 
 ### Campaigns
 
 | Tool | Description |
 |------|-------------|
-| `list_campaigns` | List all campaigns with optional filtering by scope |
+| `list_campaigns` | List campaigns, optionally scoped to `benefiting`, `chapters` or `all` |
 | `get_campaign` | Get details of a specific campaign |
 | `create_campaign` | Create a new campaign |
 | `update_campaign` | Update an existing campaign |
@@ -80,7 +80,7 @@ claude mcp add givebutter -e GIVEBUTTER_API_KEY=your-api-key -- node /path/to/gi
 
 | Tool | Description |
 |------|-------------|
-| `list_contacts` | List all contacts with optional email filter |
+| `list_contacts` | List contacts, filterable by name, email, type, tags, contribution totals and date ranges |
 | `get_contact` | Get details of a specific contact |
 | `create_contact` | Create a new contact |
 | `update_contact` | Update an existing contact |
@@ -91,8 +91,10 @@ claude mcp add givebutter -e GIVEBUTTER_API_KEY=your-api-key -- node /path/to/gi
 
 | Tool | Description |
 |------|-------------|
-| `list_contact_activities` | List all activities for a contact with optional type filter |
+| `list_contact_activities` | List activities for a contact, with optional type filter |
 | `get_contact_activity` | Get details of a specific contact activity |
+| `create_contact_activity` | Log a note, meeting, phone call, email, SMS, task or volunteer activity |
+| `update_contact_activity` | Update an existing contact activity |
 | `delete_contact_activity` | Delete a contact activity |
 
 ### Contact Tags
@@ -107,8 +109,9 @@ claude mcp add givebutter -e GIVEBUTTER_API_KEY=your-api-key -- node /path/to/gi
 
 | Tool | Description |
 |------|-------------|
-| `list_transactions` | List transactions with optional campaign/contact filter |
+| `list_transactions` | List transactions, filterable by contact, method, scope, and date ranges |
 | `get_transaction` | Get details of a specific transaction |
+| `create_transaction` | Record an offline or external gift (cash, check, stock, in-kind) |
 | `update_transaction` | Update a transaction (notes, check info, fund, team, etc.) |
 
 ### Campaign Members
@@ -240,10 +243,41 @@ Once configured, you can ask Claude questions like:
 - "Create a webhook for transaction.succeeded events"
 - "List all households and their contacts"
 - "Create a 20% discount code for our gala campaign"
+- "Record a $500 check we received last Tuesday from Jane Doe"
+- "Log a note on contact #123 that I met them at the gala"
+
+## Notes on behavior
+
+**Pagination.** List tools accept `page` and `per_page` (default 20, max 100). When more
+pages remain, the response says so explicitly rather than leaving it buried in `meta`.
+
+**Rate limits.** Givebutter allows 500 requests/minute. A `429` is retried automatically,
+honoring `Retry-After`. A `5xx` is retried only for `GET` and `DELETE` — a failed `POST`
+or `PUT` is never replayed, since the write may have landed before the response was lost.
+
+**ID types.** Campaigns, contacts, households and pledges use integer IDs. Transactions,
+funds, plans, tickets, payouts and webhooks use opaque **string** IDs (tid/fid/uid).
+
+## Development
+
+```bash
+npm run build      # compile to dist/
+npm test           # typecheck + run the test suite (no network required)
+npm run typecheck  # types only
+```
+
+`tests/fixtures/expected-routes.ts` is a golden table of every tool's method and path.
+Any change to routing shows up as a diff there, which is intentional: it makes an
+accidental route change impossible to merge unnoticed. If you add or change a tool,
+update that table in the same commit and the diff will document exactly what moved.
 
 ## API Documentation
 
-For more information about the Givebutter API, see the [official API documentation](https://docs.givebutter.com).
+For more information about the Givebutter API, see the [official API documentation](https://docs.givebutter.com/api-reference).
+
+> The OpenAPI artifacts served alongside those docs (`api.json`, `givebutter-api.json`)
+> are stale — they omit `/pledges`, narrow the webhook event enum, and list a wrong
+> campaign-tickets path. This server is built against the rendered `/api-reference` pages.
 
 ## Contributing
 

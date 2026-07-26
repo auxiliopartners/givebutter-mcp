@@ -28,3 +28,4 @@ npm-debug.log*
 
 # Local MCP config
 .mcp.json
+dist-test/
