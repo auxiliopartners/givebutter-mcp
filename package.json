@@ -1,13 +1,18 @@
 {
   "name": "givebutter-mcp",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "MCP server for Givebutter API - enables AI assistants to manage fundraising campaigns, contacts, and transactions",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "test": "tsc -p tsconfig.test.json && node --test \"dist-test/tests/**/*.test.js\"",
     "smoke": "tsx test/smoke.ts"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "license": "MIT",
   "repository": {
@@ -15,12 +20,12 @@
     "url": "git+https://github.com/johnnylinsf/givebutter-mcp.git"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "zod": "^3.23.0"
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "tsx": "^4.19.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.0.0"
   }
 }

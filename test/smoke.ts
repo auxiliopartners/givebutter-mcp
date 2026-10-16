@@ -70,7 +70,7 @@ async function testContactActivity(): Promise<void> {
   const contact = await api("/contacts", {
     method: "POST",
     body: JSON.stringify({
-      email: `${PREFIX}@example.com`,
+      primary_email: `${PREFIX}@example.com`,
       first_name: "Smoke",
       last_name: "Test",
     }),
@@ -86,7 +86,7 @@ async function testContactActivity(): Promise<void> {
     ok(`create_contact_activity → id ${aid}`);
     try {
       await api(`/contacts/${cid}/activities/${aid}`, {
-        method: "PATCH",
+        method: "PUT",
         body: JSON.stringify({ note: `${PREFIX}-note-updated` }),
       });
       ok("update_contact_activity");
